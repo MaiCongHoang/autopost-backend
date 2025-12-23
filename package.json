@@ -1,14 +1,22 @@
 {
   "name": "autopost-backend",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "Auto post backend for n8n + React dashboard",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [],
+  "author": "hoang",
+  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "mysql2": "^3.16.0"
   }
 }
