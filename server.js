@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== MySQL Pool (Railway) =====
+// ===== MySQL Pool =====
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
@@ -17,10 +17,15 @@ const pool = mysql.createPool({
   ssl: { rejectUnauthorized: false }
 });
 
-// ===== Health check =====
+// ===== ROOT (tránh Not Found) =====
+app.get("/", (req, res) => {
+  res.send("Autopost backend is running");
+});
+
+// ===== Health check DB =====
 app.get("/api/health/db", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1");
+    await pool.query("SELECT 1");
     res.json({ status: "ok", db: "connected" });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
@@ -29,24 +34,18 @@ app.get("/api/health/db", async (req, res) => {
 
 // ===== Logs =====
 app.get("/api/logs", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM post_logs ORDER BY id DESC");
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const [rows] = await pool.query(
+    "SELECT * FROM post_logs ORDER BY id DESC"
+  );
+  res.json(rows);
 });
 
 // ===== Scheduled posts =====
 app.get("/api/posts/scheduled", async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM scheduled_posts WHERE status IN ('pending','finish')"
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const [rows] = await pool.query(
+    "SELECT * FROM scheduled_posts WHERE status IN ('pending','finish')"
+  );
+  res.json(rows);
 });
 
 const PORT = process.env.PORT || 3100;
