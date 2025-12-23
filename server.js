@@ -1,4 +1,55 @@
+require("dotenv").config();
 const express = require("express");
-const app = express();
+const cors = require("cors");
+const mysql = require("mysql2/promise");
 
-app.listen(process.env.PORT || 3100);
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// ===== MySQL Pool (Railway) =====
+const pool = mysql.createPool({
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
+  ssl: { rejectUnauthorized: false }
+});
+
+// ===== Health check =====
+app.get("/api/health/db", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
+// ===== Logs =====
+app.get("/api/logs", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM post_logs ORDER BY id DESC");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== Scheduled posts =====
+app.get("/api/posts/scheduled", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM scheduled_posts WHERE status IN ('pending','finish')"
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const PORT = process.env.PORT || 3100;
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
