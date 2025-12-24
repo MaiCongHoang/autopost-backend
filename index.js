@@ -149,6 +149,21 @@ app.get("/api/posts/scheduled", async (req, res) => {
   }
 });
 
+app.get("/api/posts/finished", async (req, res) => {
+  const { id_post } = req.query;
+  const [rows] = await db.query(
+    `SELECT full_content FROM post_logs
+     WHERE id_post = ? `,
+    [id_post]
+  );
+
+  // Không có bài -> {}
+  if (rows.length === 0) return res.json({});
+
+  // Bạn muốn chỉ pending/finish, nên KHÔNG chuyển "processing"
+  res.json(rows[0]);
+});
+
 // Save log + mark finish
 app.post("/api/posts/log", async (req, res) => {
   try {
