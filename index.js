@@ -55,15 +55,15 @@ app.get("/api/posts", async (req, res) => {
 // Create post
 app.post("/api/posts", async (req, res) => {
   try {
-    const { schedule_date, schedule_hour, raw_content } = req.body;
-    if (!schedule_date || schedule_hour === undefined || !raw_content) {
+    const { schedule_date, raw_content } = req.body;
+    if (!schedule_date  === undefined || !raw_content) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
     const [r] = await db.query(
       `INSERT INTO scheduled_posts (schedule_date, schedule_hour, raw_content, status)
-       VALUES (?, ?, ?, 'pending')`,
-      [schedule_date, schedule_hour, raw_content]
+       VALUES (?, '', ?, 'pending')`,
+      [schedule_date, raw_content]
     );
 
     res.json({ id: r.insertId });
@@ -75,12 +75,12 @@ app.post("/api/posts", async (req, res) => {
 // Update post
 app.put("/api/posts/:id", async (req, res) => {
   try {
-    const { schedule_date, schedule_hour, raw_content } = req.body;
+    const { schedule_date, raw_content } = req.body;
     await db.query(
       `UPDATE scheduled_posts
-       SET schedule_date = ?, schedule_hour = ?, raw_content = ?
+       SET schedule_date = ?, raw_content = ?
        WHERE id = ?`,
-      [schedule_date, schedule_hour, raw_content, req.params.id]
+      [schedule_date, raw_content, req.params.id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -126,20 +126,19 @@ app.get("/api/logs/:id", async (req, res) => {
  * N8N APIs
  */
 
-// Get scheduled post by date+hour (pending only)
+// Get scheduled post by date(pending only)
 app.get("/api/posts/scheduled", async (req, res) => {
   try {
-    const { date, hour } = req.query;
-    if (!date || hour === undefined) return res.json({});
+    const { date } = req.query;
+    if (!date === undefined) return res.json({});
 
     const [rows] = await db.query(
       `SELECT * FROM scheduled_posts
        WHERE schedule_date = ?
-         AND schedule_hour = ?
          AND status = 'pending'
-       ORDER BY schedule_date ASC, schedule_hour ASC
+       ORDER BY schedule_date ASC
        LIMIT 1`,
-      [date, hour]
+      [date]
     );
 
     if (rows.length === 0) return res.json({});
