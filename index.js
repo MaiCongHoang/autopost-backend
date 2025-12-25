@@ -56,13 +56,13 @@ app.get("/api/posts", async (req, res) => {
 app.post("/api/posts", async (req, res) => {
   try {
     const { schedule_date, schedule_hour, raw_content } = req.body;
-    if (!schedule_date  === undefined || !raw_content) {
+    if (!schedule_date || schedule_hour === undefined || !raw_content) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
     const [r] = await db.query(
       `INSERT INTO scheduled_posts (schedule_date, schedule_hour, raw_content, status)
-       VALUES (?, '?, ?, 'pending')`,
+       VALUES (?, ?, ?, 'pending')`,
       [schedule_date, schedule_hour, raw_content]
     );
 
